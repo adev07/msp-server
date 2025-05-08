@@ -10,11 +10,11 @@ import serverless from "serverless-http";
 dotenv.config();
 const app = express();
 
-app.options("*", cors());
-
 (async () => {
   await connectDB(); // Connect to DB before handling requests
 })();
+
+app.options("*", cors());
 
 app.use(express.json());
 
