@@ -1,13 +1,22 @@
-// api/index.js
-import express from "express";
+// Load environment variables first
 import dotenv from "dotenv";
+dotenv.config();
+
+// Debug logging
+console.log("Environment variables loaded at app startup:", {
+  OPENAI_API_KEY_PRESENT: !!process.env.OPENAI_API_KEY,
+  OPENAI_API_KEY_LENGTH: process.env.OPENAI_API_KEY?.length || 0,
+  NODE_ENV: process.env.NODE_ENV,
+});
+
+// Rest of imports
+import express from "express";
 import connectDB from "./config/db.js";
 import routes from "./routes/index.js";
 import { errorConverter, errorHandler } from "./middleware/error.js";
 import cors from "cors";
 import serverless from "serverless-http";
 
-dotenv.config();
 const app = express();
 
 // (async () => {
