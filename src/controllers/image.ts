@@ -1,6 +1,4 @@
 import { Request, Response } from "express";
-import fs from "fs";
-import path from "path";
 import OpenAI from "openai";
 
 // Configure OpenAI
@@ -13,16 +11,19 @@ interface DetectionResult {
 
 /**
  * Analyze image with GPT-4o to detect computers and servers
- * @param {string} filePath
+ * @param {Buffer} fileBuffer - The image file buffer
+ * @param {string} mimeType - The MIME type of the image
  * @returns {Promise<DetectionResult>}
  */
-async function analyzeWithGPT(filePath: string): Promise<DetectionResult> {
-  // 1) Read file & convert to base64
-  const b64 = fs.readFileSync(filePath, { encoding: "base64" });
-  const ext = path.extname(filePath).slice(1);
-  const dataUrl = `data:image/${ext};base64,${b64}`;
+async function analyzeWithGPT(
+  fileBuffer: Buffer,
+  mimeType: string
+): Promise<DetectionResult> {
+  // Convert buffer to base64
+  const b64 = fileBuffer.toString("base64");
+  const dataUrl = `data:${mimeType};base64,${b64}`;
 
-  // 2) Send to GPT-4o
+  // Send to GPT-4o
   const resp = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
@@ -60,10 +61,7 @@ Do not include any other text or explanation. If you cannot detect any computers
     response_format: { type: "json_object" },
   });
 
-  // 3) Clean up temp file
-  fs.unlink(filePath, () => {});
-
-  // 4) Parse the response
+  // Parse the response
   const content = resp.choices[0].message?.content?.trim();
   console.log("GPT-4o Response:", content);
 
@@ -109,7 +107,10 @@ export const analyzeImage = async (
   }
 
   try {
-    const detectionResult = await analyzeWithGPT(req.file.path);
+    const detectionResult = await analyzeWithGPT(
+      req.file.buffer,
+      req.file.mimetype
+    );
     res.json({ success: true, ...detectionResult });
   } catch (e: any) {
     console.error("GPT Vision Error:", e);
