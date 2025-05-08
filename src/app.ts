@@ -32,27 +32,24 @@ const allowedOrigins = [
   "https://www.mymanagedservicepricing.com",
 ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin) return callback(null, true);
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log("🔍 Incoming origin:", origin);
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        return callback(new Error("CORS policy does not allow this origin."));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.warn("⛔ Blocked by CORS:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-app.options("*", cors());
-
-app.use(express.json());
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.get("/", (req, res) => {
   res.send("Hello from Vercel Express!");
