@@ -12,27 +12,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.handler = void 0;
+// api/index.js
 const express_1 = __importDefault(require("express"));
-const app = (0, express_1.default)();
 const dotenv_1 = __importDefault(require("dotenv"));
 const db_js_1 = __importDefault(require("./config/db.js"));
-dotenv_1.default.config();
-const port = 4000;
-const routes_1 = __importDefault(require("./routes"));
+const index_js_1 = __importDefault(require("./routes/index.js"));
 const error_js_1 = require("./middleware/error.js");
 const cors_1 = __importDefault(require("cors"));
+const serverless_http_1 = __importDefault(require("serverless-http"));
+dotenv_1.default.config();
+const app = (0, express_1.default)();
 (() => __awaiter(void 0, void 0, void 0, function* () {
-    yield (0, db_js_1.default)();
-    app.use(express_1.default.json());
-    app.use((0, cors_1.default)());
-    app.get('/', (req, res) => {
-        res.send('Hello World!');
-    });
-    app.use('/api', routes_1.default);
-    app.use(error_js_1.errorConverter);
-    app.use(error_js_1.errorHandler);
-    app.listen(port, () => {
-        return console.log(`Express is listening at http://localhost:${port}`);
-    });
+    yield (0, db_js_1.default)(); // Connect to DB before handling requests
 }))();
+app.use(express_1.default.json());
+app.use((0, cors_1.default)());
+app.get("/", (req, res) => {
+    res.send("Hello from Vercel Express!");
+});
+// Mount routes without `/api` prefix — you're already in `/api` folder
+app.use("/", index_js_1.default);
+app.use(error_js_1.errorConverter);
+app.use(error_js_1.errorHandler);
+const port = 4000;
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
+// Do NOT call app.listen()
+// Instead, export the handler
+exports.handler = (0, serverless_http_1.default)(app);
+exports.default = app;
 //# sourceMappingURL=app.js.map
