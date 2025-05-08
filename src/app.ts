@@ -26,6 +26,10 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:3000",
   "https://msp-calculator-green.vercel.app",
+  "https://www.instantmsppricing.com",
+  "https://mspcosts.com",
+  "https://pricemyhelpdesk.com",
+  "https://www.mymanagedservicepricing.com",
 ];
 
 app.use(
