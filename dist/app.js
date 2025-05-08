@@ -24,13 +24,9 @@ const serverless_http_1 = __importDefault(require("serverless-http"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 (() => __awaiter(void 0, void 0, void 0, function* () {
-    yield (0, db_js_1.default)(); // Connect to DB before handling requests
+    yield (0, db_js_1.default)();
 }))();
-const allowedOrigins = ["http://localhost:3000", "http://localhost:4000"];
-app.use((0, cors_1.default)({
-    origin: allowedOrigins,
-    credentials: true,
-}));
+app.options("*", (0, cors_1.default)());
 app.use(express_1.default.json());
 app.get("/", (req, res) => {
     res.send("Hello from Vercel Express!");

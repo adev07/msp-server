@@ -11,10 +11,10 @@ dotenv.config();
 const app = express();
 
 (async () => {
-  await connectDB(); // Connect to DB before handling requests
+  await connectDB();
 })();
 
-app.options("*", cors());
+app.use(cors());
 
 app.use(express.json());
 
