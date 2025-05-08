@@ -26,8 +26,12 @@ const app = (0, express_1.default)();
 (() => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, db_js_1.default)(); // Connect to DB before handling requests
 }))();
+const allowedOrigins = ["http://localhost:3000", "http://localhost:4000"];
+app.use((0, cors_1.default)({
+    origin: allowedOrigins,
+    credentials: true,
+}));
 app.use(express_1.default.json());
-app.use((0, cors_1.default)());
 app.get("/", (req, res) => {
     res.send("Hello from Vercel Express!");
 });

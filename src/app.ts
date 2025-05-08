@@ -14,8 +14,15 @@ const app = express();
   await connectDB(); // Connect to DB before handling requests
 })();
 
+const allowedOrigins = ["http://localhost:3000", "http://localhost:4000"];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 app.use(express.json());
-app.use(cors());
 
 app.get("/", (req, res) => {
   res.send("Hello from Vercel Express!");
