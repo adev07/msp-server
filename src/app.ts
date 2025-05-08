@@ -14,7 +14,15 @@ const app = express();
   await connectDB(); // Connect to DB before handling requests
 })();
 
-const allowedOrigins = ["http://localhost:3000", "http://localhost:4000"];
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:4000",
+  "https://msp-calculator-green.vercel.app/",
+  "https://www.mymanagedservicepricing.com/",
+  "https://pricemyhelpdesk.com/",
+  "https://mspcosts.com/",
+  "https://www.instantmsppricing.com/",
+];
 
 app.use(
   cors({
