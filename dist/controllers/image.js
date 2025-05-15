@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.analyzeImage = void 0;
+exports.analyzeImages = void 0;
 const openai_1 = __importDefault(require("openai"));
 // Configure OpenAI
 const openai = new openai_1.default({ apiKey: process.env.OPENAI_API_KEY });
@@ -25,10 +25,8 @@ const openai = new openai_1.default({ apiKey: process.env.OPENAI_API_KEY });
 function analyzeWithGPT(fileBuffer, mimeType) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
-        // Convert buffer to base64
         const b64 = fileBuffer.toString("base64");
         const dataUrl = `data:${mimeType};base64,${b64}`;
-        // Send to GPT-4o
         const resp = yield openai.chat.completions.create({
             model: "gpt-4o",
             messages: [
@@ -55,9 +53,7 @@ Do not include any other text or explanation. If you cannot detect any computers
                         },
                         {
                             type: "image_url",
-                            image_url: {
-                                url: dataUrl,
-                            },
+                            image_url: { url: dataUrl },
                         },
                     ],
                 },
@@ -65,12 +61,10 @@ Do not include any other text or explanation. If you cannot detect any computers
             max_tokens: 300,
             response_format: { type: "json_object" },
         });
-        // Parse the response
         const content = (_b = (_a = resp.choices[0].message) === null || _a === void 0 ? void 0 : _a.content) === null || _b === void 0 ? void 0 : _b.trim();
         console.log("GPT-4o Response:", content);
-        if (!content) {
+        if (!content)
             throw new Error("No response from GPT-4o");
-        }
         try {
             const result = JSON.parse(content);
             if (typeof result.computers !== "number" ||
@@ -87,19 +81,33 @@ Do not include any other text or explanation. If you cannot detect any computers
     });
 }
 /**
- * Upload and analyze an image
- * @param {MulterRequest} req - Express request object with file
+ * Upload and analyze multiple images
+ * @param {MulterRequest} req - Express request object with files
  * @param {Response} res - Express response object
  */
-const analyzeImage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const analyzeImages = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    if (!req.file) {
-        res.status(400).json({ error: "No image uploaded" });
+    const files = req.files;
+    if (!files || files.length === 0) {
+        res.status(400).json({ error: "No images uploaded" });
         return;
     }
     try {
-        const detectionResult = yield analyzeWithGPT(req.file.buffer, req.file.mimetype);
-        res.json(Object.assign({ success: true }, detectionResult));
+        const results = yield Promise.all(files.map((file) => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                const result = yield analyzeWithGPT(file.buffer, file.mimetype);
+                return Object.assign({ filename: file.originalname }, result);
+            }
+            catch (err) {
+                console.error(`Error analyzing ${file.originalname}:`, err.message);
+                return {
+                    filename: file.originalname,
+                    error: "Failed to analyze image",
+                    details: (err === null || err === void 0 ? void 0 : err.message) || "Unknown error",
+                };
+            }
+        })));
+        res.json({ success: true, results });
     }
     catch (e) {
         console.error("GPT Vision Error:", e);
@@ -109,5 +117,5 @@ const analyzeImage = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         });
     }
 });
-exports.analyzeImage = analyzeImage;
+exports.analyzeImages = analyzeImages;
 //# sourceMappingURL=image.js.map

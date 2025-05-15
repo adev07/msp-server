@@ -27,15 +27,29 @@ const app = (0, express_1.default)();
 const allowedOrigins = [
     "http://localhost:3000",
     "https://msp-calculator-green.vercel.app",
+    "https://instantmsppricing.com",
+    "https://www.instantmsppricing.com",
+    "https://mspcosts.com",
+    "https://pricemyhelpdesk.com",
+    "https://www.mymanagedservicepricing.com",
 ];
-app.use((0, cors_1.default)({
-    origin: allowedOrigins,
+const corsOptions = {
+    origin: function (origin, callback) {
+        console.log("🔍 Incoming origin:", origin);
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        else {
+            console.warn("⛔ Blocked by CORS:", origin);
+            return callback(new Error("Not allowed by CORS"));
+        }
+    },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-}));
-app.options("*", (0, cors_1.default)());
-app.use(express_1.default.json());
+};
+app.use((0, cors_1.default)(corsOptions));
+app.options("*", (0, cors_1.default)(corsOptions));
 app.get("/", (req, res) => {
     res.send("Hello from Vercel Express!");
 });
