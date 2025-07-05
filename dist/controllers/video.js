@@ -21,7 +21,6 @@ const os_1 = require("os");
 const fluent_ffmpeg_1 = __importDefault(require("fluent-ffmpeg"));
 const child_process_1 = require("child_process");
 const util_1 = require("util");
-// Set ffprobe path dynamically
 try {
     const ffprobePath = (0, child_process_1.execSync)("which ffprobe").toString().trim();
     fluent_ffmpeg_1.default.setFfprobePath(ffprobePath);
@@ -29,9 +28,7 @@ try {
 catch (err) {
     console.error("Could not find ffprobe:", err);
 }
-// Promisify ffprobe
 const ffprobe = (0, util_1.promisify)(fluent_ffmpeg_1.default.ffprobe);
-// Configure OpenAI
 const openai = new openai_1.default({ apiKey: process.env.OPENAI_API_KEY });
 /**
  * Get video duration in seconds
@@ -58,14 +55,12 @@ function getVideoDuration(videoPath) {
 function extractFrame(videoPath) {
     return __awaiter(this, void 0, void 0, function* () {
         const framePath = (0, path_1.join)((0, os_1.tmpdir)(), `frame-${Date.now()}.jpg`);
-        // Check video metadata
         const metadata = yield ffprobe(videoPath);
         const duration = metadata.format.duration || 0;
         const hasVideoStream = metadata.streams.some((s) => s.codec_type === "video");
         if (!hasVideoStream) {
             throw new Error("No video stream found in uploaded file.");
         }
-        // Use a safe default timestamp
         const timestamp = duration > 1 ? (duration / 2).toFixed(2) : "00:00:00.500";
         return new Promise((resolve, reject) => {
             (0, fluent_ffmpeg_1.default)(videoPath)
@@ -91,7 +86,7 @@ function extractFrame(videoPath) {
                 timestamps: [timestamp],
                 filename: framePath.split("/").pop() || "frame.jpg",
                 folder: (0, os_1.tmpdir)(),
-                size: "1920x1080", // use max resolution from your source
+                size: "1920x1080",
             });
         });
     });
@@ -170,9 +165,6 @@ function analyzeWithGPT(videoPath) {
         }
     });
 }
-/**
- * Express route handler to upload and analyze a video
- */
 const analyzeVideo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const file = req.file;
